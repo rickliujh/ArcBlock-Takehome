@@ -1,0 +1,75 @@
+# TDOO CI/CD
+
+name: Shipping to ArcBlock
+  
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  
+
+env:
+  APP_ENV: development
+  AWS_REGION: us-west-2
+  ECR_REPOSITORY: demo-service
+
+jobs:
+
+  build-push:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Render config template
+        uses: cuchi/jinja2-action@v1.2.0
+        with:
+          template: configuration/config_template.yaml
+          output_file: configuration/${{env.APP_ENV}}.yaml
+          strict: true
+          variables: |
+            server_basePath=${{secrets.SERVER_BASEPATH}}
+            server_loggingLevel=${{secrets.SERVER_LOGLEVEL}}
+            server_auth_algs=${{secrets.SERVER_AUTH_ALGS}}
+            server_auth_pk=${{secrets.SERVER_AUTH_PK}}
+            server_auth_aud=${{secrets.SERVER_AUTH_AUD}}
+            server_auth_iss=${{secrets.SERVER_AUTH_ISS}}
+            database_mongo_name=${{secrets.MONGO_DB_NAME}}
+            database_mongo_uri=${{secrets.MONGO_URI}}
+            chain_eth_network_name=${{secrets.BC_ETH_NET_NAME}}
+            chain_eth_network_chainId=${{secrets.BC_ETH_NET_CHAINID}}
+            chain_eth_infura_apiKey=${{secrets.BC_ETH_INFURA_APIKEY}}
+            server_cors_origin=${{secrets.CORS_ORIGIN}}
+            server_cors_credentials=${{secrets.CORS_CRED}}
+            server_cors_methods=${{secrets.CORS_METHODS}}
+            server_cors_headers=${{secrets.CORS_HEADERS}}
+    
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@13d241b293754004c80624b5567555c4a39ffbe3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@aaf69d68aa3fb14c1d5a6be9ac61fe15b48453a2
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  # deploy:
+  #   needs: build-push
+  #   runs-on: ubuntu-latest
+  #   environment: production
+  #   steps:

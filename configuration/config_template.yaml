@@ -1,0 +1,33 @@
+server:
+  basePath: {{server_basePath}}
+  port: 3000
+  loggingLevel: {{server_loggingLevel}}
+  auth:
+    algorithms: {{server_auth_algs}}
+    privateKey: {{server_auth_pk}}
+    audience: {{server_auth_aud}}
+    issuer: {{server_auth_iss}}
+  cors:
+    origin: {{server_cors_origin}}
+    credentials: {{server_cors_credentials}}
+    methods: {{server_cors_methods}}
+    allowedHeaders: {{server_cors_headers}}
+
+database:
+  mongo:
+    name: {{database_mongo_name}}
+    uri: {{database_mongo_uri}}
+
+blockchain:
+  ethereum:
+    network: 
+      name: {{chain_eth_network_name}}
+      chainId: {{chain_eth_network_chainId}}
+    providers:
+      quorum: 1
+      alchemy:
+        token:
+      etherscan:
+        token:
+      infura: {{chain_eth_infura_apiKey}}
+      pocket:
