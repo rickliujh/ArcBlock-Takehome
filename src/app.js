@@ -51,7 +51,7 @@ getDirs(routePath, '2', 1).filter(v => /.*\/v[0-9]{1}$/.test(v)).forEach(moduleD
   app.use(apiPath, require(moduleDir))
   log.info('registered path of router: %s', apiPath)
 })
-getDirs(routePath, '1', 1).forEach(file => {
+getDirs(routePath, '1', 1).filter(v => !/.*.test.js$/.test(v)).forEach(file => {
   let apiPath = path.join(basePath, file.replace(routePath, '').replace('.js', ''))
   log.info('file: %s loading...', file)
   app.use(apiPath, require(file))

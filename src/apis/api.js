@@ -2,7 +2,7 @@ const axios = require('axios')
 const ethers = require('ethers')
 const { query, validationResult } = require('express-validator')
 const config = require('../config')
-const db = require('../db')
+// const db = require('../db')
 const { Pageable } = require('../common')
 module.exports = require('express').Router()
 
